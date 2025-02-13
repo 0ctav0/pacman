@@ -11,16 +11,19 @@ const PLAYER_CONTROL_RIGHT = "ArrowRight";
 const PLAYER_CONTROL_DOWN = "ArrowDown";
 const PLAYER_CONTROL_LEFT = "ArrowLeft";
 
+export const WIDTH = 1024;
+export const HEIGHT = 1024;
+
 export class Controller {
-    private app: Application;
-    private model: Model;
-    private view?: View;
+    private _app: Application;
+    private _model: Model;
+    private _view?: View;
     private _slowDelta: number = 0;
     private _direction: Vector2 = [0, 0];
 
     constructor() {
-        this.app = new Application();
-        this.model = new Model();
+        this._app = new Application();
+        this._model = new Model();
         this.Init();
     }
 
@@ -29,23 +32,23 @@ export class Controller {
         await this.LoadLevel();
         await this.LoadEntities();
         this.SlowUpdateLoop();
-        this.app.ticker.add(this.UpdateLoop);
+        this._app.ticker.add(this.UpdateLoop);
         this.SetupPlayerController();
     }
 
     private async LoadResources() {
         const [background, bunny] = await LoadResources();
-        this.view = new View(this.app, { background, bunny });
-        await this.view.Init();
+        this._view = new View(this._app, { background, bunny });
+        await this._view.Init();
     }
 
     private async LoadLevel() {
-
+        this._view?.InitWalls(this._model);
     }
 
     private async LoadEntities() {
-        this.view?.InitSprites(this.model.player);
-        this.model.enemies.map(enemy => this.view?.InitSprites(enemy));
+        this._view?.InitSprites(this._model.player);
+        this._model.enemies.map(enemy => this._view?.InitSprites(enemy));
     }
 
     private SetupPlayerController = () => {
@@ -70,13 +73,13 @@ export class Controller {
 
     private SlowUpdateLoop = () => {
         const deltaTimeS = (performance.now() - this._slowDelta) / 1000;
-        this.model.SlowUpdate(deltaTimeS);
+        this._model.SlowUpdate(deltaTimeS);
         this._slowDelta = performance.now();
         setTimeout(this.SlowUpdateLoop, SLOW_UPDATE_DELAY_MS);
     }
 
     private UpdateLoop = (time: Ticker) => {
-        this.model.Update(time.deltaTime, this._direction);
-        this.view?.Update(time.deltaTime, this.model);
+        this._model.Update(time.deltaTime, this._direction);
+        this._view?.Update(time.deltaTime, this._model);
     }
 }
